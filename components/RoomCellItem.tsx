@@ -56,7 +56,7 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType }) => {
     case "full":
     default:
       return (
-        <Box position="relative" width="100%" height="50px">
+        <Box position="relative" width="50%" height="50px">
           <CellItem
             color="blue"
             {...middleComponentProps}

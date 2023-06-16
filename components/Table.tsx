@@ -11,11 +11,9 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
-import { deleteDoc, doc, getFirestore } from "firebase/firestore";
 import moment from "moment";
 import "moment/locale/sk";
-import { useFetchData } from "../hooks";
-import { TDay, TFirebaseCollections, TReservation, TRoom } from "../types";
+import { TDay, TReservation, TRoom } from "../types";
 import { RoomCellItem } from "./RoomCellItem";
 moment.locale("sk");
 
@@ -26,7 +24,6 @@ type Props = {
 };
 
 export const Table = ({ days, rooms, reservations }: Props) => {
-  const { setRooms } = useFetchData();
   const getReservationsForDay = (roomId: string, dayValue: number) => {
     return reservations.filter((reservation) => {
       const reservationStart = moment(reservation.start)
@@ -64,12 +61,6 @@ export const Table = ({ days, rooms, reservations }: Props) => {
     return <RoomCellItem reservation={reservation} dayType={dayType} />;
   };
 
-  const handleDeleteRoom = async (roomId: string) => async () => {
-    console.log("delete room", roomId);
-    await deleteDoc(doc(getFirestore(), TFirebaseCollections.ROOMS, roomId));
-    setRooms((prevState) => prevState.filter((room) => room.id !== roomId));
-  };
-
   return (
     <TableContainer>
       <ChakraTable variant="simple">
@@ -94,7 +85,12 @@ export const Table = ({ days, rooms, reservations }: Props) => {
                 const reservations = getReservationsForDay(room.id, day.value);
                 return (
                   <Td p="0" key={day.value}>
-                    <Box position="relative" width="100%" height="50px">
+                    <Box
+                      position="relative"
+                      width="100%"
+                      display="flex"
+                      height="50px"
+                    >
                       {reservations.map((reservation) =>
                         getReservationCellContent(
                           moment(day.value),

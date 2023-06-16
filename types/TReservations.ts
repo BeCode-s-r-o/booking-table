@@ -4,6 +4,7 @@ export type TReservation = {
   start: number;
   end: number;
   name: string;
+  halfDay: boolean;
 };
 
 export type TDay = { value: number; label: string };
