@@ -25,17 +25,21 @@ type Props = {
 
 export const Table = ({ days, rooms, reservations }: Props) => {
   const getReservationsForDay = (roomId: string, dayValue: number) => {
-    return reservations.filter((reservation) => {
-      const reservationStart = moment(reservation.start)
-        .startOf("day")
-        .valueOf();
-      const reservationEnd = moment(reservation.end).startOf("day").valueOf();
-      return (
-        reservation.roomId === roomId &&
-        dayValue >= reservationStart &&
-        dayValue <= reservationEnd
-      );
-    });
+    return reservations
+      .filter((reservation) => {
+        const reservationStart = moment(reservation.start)
+          .startOf("day")
+          .valueOf();
+        const reservationEnd = moment(reservation.end).startOf("day").valueOf();
+        return (
+          reservation.roomId === roomId &&
+          dayValue >= reservationStart &&
+          dayValue <= reservationEnd
+        );
+      })
+      .sort((a, b) => {
+        return moment(a.start).valueOf() - moment(b.start).valueOf();
+      });
   };
 
   const getReservationCellContent = (
@@ -57,7 +61,7 @@ export const Table = ({ days, rooms, reservations }: Props) => {
     } else if (dayMoment.isBetween(startDay, endDay, "day", "[]")) {
       dayType = "middle";
     }
-
+    console.log(reservation.name, dayType);
     return <RoomCellItem reservation={reservation} dayType={dayType} />;
   };
 

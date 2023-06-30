@@ -1,4 +1,14 @@
-import { Box } from "@chakra-ui/react";
+import {
+  Box,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
+  Text,
+} from "@chakra-ui/react";
 import { FC } from "react";
 import {
   bottomComponentProps,
@@ -13,7 +23,6 @@ type CellItemProps = {
   clipPath?: string;
   reservation: TReservation;
   textAlign: string;
-  zIndex: number;
 };
 
 type Props = {
@@ -56,7 +65,7 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType }) => {
     case "full":
     default:
       return (
-        <Box position="relative" width="50%" height="50px">
+        <Box position="relative" height="50px">
           <CellItem
             color="blue"
             {...middleComponentProps}
@@ -72,9 +81,8 @@ const CellItem: FC<CellItemProps> = ({
   clipPath,
   reservation,
   textAlign,
-  zIndex,
 }) => (
-  <Box position="relative" width="100%" height="100%" zIndex={zIndex}>
+  <Box position="relative" width="100%" height="100%">
     <Box
       position="absolute"
       background={color}
@@ -91,7 +99,19 @@ const CellItem: FC<CellItemProps> = ({
       justifyContent={textAlign}
       color="black"
     >
-      {reservation.name}
+      <Popover>
+        <PopoverTrigger>
+          <Text>{reservation.name}</Text>
+        </PopoverTrigger>
+        <PopoverContent>
+          <PopoverArrow />
+          <PopoverCloseButton />
+          <PopoverHeader>Confirmation!</PopoverHeader>
+          <PopoverBody>
+            Are you sure you want to have that milkshake?
+          </PopoverBody>
+        </PopoverContent>
+      </Popover>
     </Box>
   </Box>
 );
