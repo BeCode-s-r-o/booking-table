@@ -1,3 +1,4 @@
+import { DeleteIcon } from "@chakra-ui/icons";
 import {
   Box,
   Table as ChakraTable,
@@ -11,9 +12,10 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
+import { deleteDoc, doc, getFirestore, updateDoc } from "firebase/firestore";
 import moment from "moment";
 import "moment/locale/sk";
-import { TDay, TReservation, TRoom } from "../types";
+import { TDay, TFirebaseCollections, TReservation, TRoom } from "../types";
 import { RoomCellItem } from "./RoomCellItem";
 moment.locale("sk");
 
@@ -21,9 +23,12 @@ type Props = {
   days: TDay[];
   rooms: TRoom[];
   reservations: TReservation[];
+  refetch: () => void;
 };
 
-export const Table = ({ days, rooms, reservations }: Props) => {
+export const Table = ({ days, rooms, reservations, refetch }: Props) => {
+  const fs = getFirestore();
+
   const getReservationsForDay = (roomId: string, dayValue: number) => {
     return reservations
       .filter((reservation) => {
@@ -61,8 +66,37 @@ export const Table = ({ days, rooms, reservations }: Props) => {
     } else if (dayMoment.isBetween(startDay, endDay, "day", "[]")) {
       dayType = "middle";
     }
-    console.log(reservation.name, dayType);
-    return <RoomCellItem reservation={reservation} dayType={dayType} />;
+
+    return (
+      <RoomCellItem
+        reservation={reservation}
+        dayType={dayType}
+        refetch={refetch}
+      />
+    );
+  };
+
+  const handleChangeRoomName = (roomId: string) => (value: string) => {
+    const roomRef = doc(fs, TFirebaseCollections.ROOMS, roomId);
+    updateDoc(roomRef, { name: value });
+  };
+
+  const deleteRoom = (roomId: string) => () => {
+    const roomRef = doc(fs, TFirebaseCollections.ROOMS, roomId);
+    const reservationstoDelete: TReservation[] = reservations.filter(
+      (reservation: TReservation) => reservation.roomId === roomId
+    );
+    reservationstoDelete.forEach((reservation: TReservation) => {
+      const reservationRef = doc(
+        fs,
+        TFirebaseCollections.RESERVATIONS,
+        reservation.id
+      );
+      deleteDoc(reservationRef);
+    });
+
+    deleteDoc(roomRef);
+    refetch();
   };
 
   return (
@@ -80,7 +114,17 @@ export const Table = ({ days, rooms, reservations }: Props) => {
           {rooms.map((room) => (
             <Tr key={room.id}>
               <Td display="flex" alignItems="center">
-                <Editable defaultValue={room.name}>
+                <DeleteIcon
+                  boxSize={3}
+                  mr="2"
+                  color="rgba(255,0,0,0.5)"
+                  onClick={deleteRoom(room.id)}
+                  cursor={"pointer"}
+                />
+                <Editable
+                  defaultValue={room.name}
+                  onSubmit={handleChangeRoomName(room.id)}
+                >
                   <EditablePreview />
                   <EditableInput />
                 </Editable>

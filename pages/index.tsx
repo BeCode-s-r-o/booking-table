@@ -2,7 +2,7 @@ import moment from "moment";
 import "moment/locale/sk";
 import { useState } from "react";
 
-import { useDisclosure } from "@chakra-ui/react";
+import { Box, useDisclosure } from "@chakra-ui/react";
 import { Buttons, ReservationModal, Table } from "../components";
 import { useFetchData } from "../hooks";
 
@@ -10,7 +10,7 @@ moment.locale("sk");
 
 const Index = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { rooms, reservations, setRooms } = useFetchData();
+  const { rooms, reservations, setRooms, refetch } = useFetchData();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const generateWeek = (offset: number) => {
@@ -28,7 +28,7 @@ const Index = () => {
   const days = generateWeek(weekOffset);
 
   return (
-    <>
+    <Box p="4">
       <Buttons
         onOpen={onOpen}
         setWeekOffset={setWeekOffset}
@@ -36,9 +36,14 @@ const Index = () => {
         rooms={rooms}
         setRooms={setRooms}
       />
-      <Table days={days} rooms={rooms} reservations={reservations} />
-      <ReservationModal isOpen={isOpen} onClose={onClose} />
-    </>
+      <Table
+        days={days}
+        rooms={rooms}
+        reservations={reservations}
+        refetch={refetch}
+      />
+      <ReservationModal isOpen={isOpen} onClose={onClose} refetch={refetch} />
+    </Box>
   );
 };
 

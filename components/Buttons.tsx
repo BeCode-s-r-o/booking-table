@@ -1,4 +1,4 @@
-import { Button, Stack } from "@chakra-ui/react";
+import { Button, Center, Stack, useToast } from "@chakra-ui/react";
 import { doc, getFirestore, setDoc } from "firebase/firestore";
 import { uuid } from "uuidv4";
 import { TFirebaseCollections, TRoom } from "../types";
@@ -18,47 +18,58 @@ const Buttons = ({
   setRooms,
   onOpen,
 }: Props) => {
+  const toast = useToast();
+
   const addRoom = async () => {
     const id = uuid();
+    const roomName = `Izba ${rooms.length + 1}`;
     const newRoom: TRoom = {
       id,
-      name: `Izba ${rooms.length + 1}`,
+      name: roomName,
       order: rooms.length + 1,
     };
     setRooms([...rooms, newRoom]);
     await setDoc(doc(getFirestore(), TFirebaseCollections.ROOMS, id), newRoom);
+    toast({
+      title: `${roomName} bola pridaná!`,
+      duration: 2000,
+      position: "top-right",
+      isClosable: true,
+    });
   };
 
   return (
-    <Stack direction="row" spacing={4} align="center">
-      <Button
-        onClick={() => setWeekOffset(weekOffset - 1)}
-        colorScheme="blue"
-        variant="outline"
-      >
-        Minulý týždeň
-      </Button>
-      <Button
-        onClick={() => setWeekOffset(0)}
-        colorScheme="blue"
-        variant="outline"
-      >
-        Tento týždeň
-      </Button>
-      <Button
-        onClick={() => setWeekOffset(weekOffset + 1)}
-        colorScheme="blue"
-        variant="outline"
-      >
-        Ďalší týždeň
-      </Button>
-      <Button onClick={addRoom} colorScheme="blue">
-        Pridať izbu
-      </Button>
-      <Button onClick={onOpen} colorScheme="blue">
-        Pridať rezerváciu
-      </Button>
-    </Stack>
+    <Center mb={["2", "5"]}>
+      <Stack direction={["column", "row"]} spacing={4} align="center">
+        <Button
+          onClick={() => setWeekOffset(weekOffset - 1)}
+          colorScheme="blue"
+          variant="outline"
+        >
+          Minulý týždeň
+        </Button>
+        <Button
+          onClick={() => setWeekOffset(0)}
+          colorScheme="blue"
+          variant="outline"
+        >
+          Tento týždeň
+        </Button>
+        <Button
+          onClick={() => setWeekOffset(weekOffset + 1)}
+          colorScheme="blue"
+          variant="outline"
+        >
+          Ďalší týždeň
+        </Button>
+        <Button onClick={addRoom} colorScheme="blue">
+          Pridať izbu
+        </Button>
+        <Button onClick={onOpen} colorScheme="blue">
+          Pridať rezerváciu
+        </Button>
+      </Stack>
+    </Center>
   );
 };
 

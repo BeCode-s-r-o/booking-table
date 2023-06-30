@@ -27,10 +27,15 @@ export const useFetchData = () => {
     setReservations(data);
   };
 
+  const refetch = () => {
+    fetchRooms();
+    fetchReservations();
+  };
+
   useEffect(() => {
     fetchRooms();
     fetchReservations();
   }, []);
 
-  return { rooms, setRooms, reservations, setReservations };
+  return { rooms, setRooms, reservations, setReservations, refetch };
 };

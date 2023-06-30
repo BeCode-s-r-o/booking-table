@@ -1,21 +1,25 @@
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Box,
+  Center,
   Popover,
   PopoverArrow,
   PopoverBody,
   PopoverCloseButton,
   PopoverContent,
-  PopoverHeader,
   PopoverTrigger,
+  Stack,
   Text,
 } from "@chakra-ui/react";
+import { deleteDoc, doc, getFirestore } from "firebase/firestore";
+import moment from "moment";
 import { FC } from "react";
 import {
   bottomComponentProps,
   middleComponentProps,
   topComponentProps,
 } from "../constants";
-import { TReservation } from "../types";
+import { TFirebaseCollections, TReservation } from "../types";
 
 type CellItemProps = {
   children?: React.ReactNode;
@@ -23,14 +27,16 @@ type CellItemProps = {
   clipPath?: string;
   reservation: TReservation;
   textAlign: string;
+  refetch: () => void;
 };
 
 type Props = {
   reservation: TReservation;
   dayType: string;
+  refetch: () => void;
 };
 
-export const RoomCellItem: FC<Props> = ({ reservation, dayType }) => {
+export const RoomCellItem: FC<Props> = ({ reservation, dayType, refetch }) => {
   switch (dayType) {
     case "start":
       return (
@@ -39,6 +45,7 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType }) => {
             {...topComponentProps}
             color="blue"
             reservation={reservation}
+            refetch={refetch}
           />
         </Box>
       );
@@ -49,6 +56,7 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType }) => {
             color="blue"
             {...middleComponentProps}
             reservation={reservation}
+            refetch={refetch}
           />
         </Box>
       );
@@ -59,6 +67,7 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType }) => {
             color="blue"
             {...bottomComponentProps}
             reservation={reservation}
+            refetch={refetch}
           />
         </Box>
       );
@@ -70,6 +79,7 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType }) => {
             color="blue"
             {...middleComponentProps}
             reservation={reservation}
+            refetch={refetch}
           />
         </Box>
       );
@@ -81,39 +91,74 @@ const CellItem: FC<CellItemProps> = ({
   clipPath,
   reservation,
   textAlign,
-}) => (
-  <Box position="relative" width="100%" height="100%">
-    <Box
-      position="absolute"
-      background={color}
-      width="100%"
-      height="100%"
-      clipPath={clipPath}
-    />
-    <Box
-      position="absolute"
-      width="100%"
-      height="100%"
-      display="flex"
-      alignItems="center"
-      justifyContent={textAlign}
-      color="black"
-    >
-      <Popover>
-        <PopoverTrigger>
-          <Text>{reservation.name}</Text>
-        </PopoverTrigger>
-        <PopoverContent>
-          <PopoverArrow />
-          <PopoverCloseButton />
-          <PopoverHeader>Confirmation!</PopoverHeader>
-          <PopoverBody>
-            Are you sure you want to have that milkshake?
-          </PopoverBody>
-        </PopoverContent>
-      </Popover>
+  refetch,
+}) => {
+  const deleteReservation = (id: string) => async () => {
+    await deleteDoc(doc(getFirestore(), TFirebaseCollections.RESERVATIONS, id));
+    refetch();
+  };
+
+  return (
+    <Box position="relative" width="100%" height="100%">
+      <Box
+        position="absolute"
+        background={color}
+        width="100%"
+        height="100%"
+        clipPath={clipPath}
+      />
+      <Box
+        position="absolute"
+        width="100%"
+        height="100%"
+        display="flex"
+        alignItems="center"
+        justifyContent={textAlign}
+      >
+        <Popover>
+          <PopoverTrigger>
+            <Text color="white">
+              {reservation.name.length > 10
+                ? reservation.name.substring(0, 10) + "..."
+                : reservation.name}
+            </Text>
+          </PopoverTrigger>
+          <PopoverContent>
+            <PopoverArrow />
+            <PopoverCloseButton />
+            <PopoverBody p="6">
+              <Text textAlign="center" fontWeight="bold">
+                {reservation.name}
+              </Text>
+              <Text textAlign="center">
+                {moment(reservation.start).format("DD.MM.")} -{" "}
+                {moment(reservation.end).format("DD.MM.")}
+              </Text>
+              {reservation.price && (
+                <Text textAlign="center">{reservation.price}€</Text>
+              )}
+
+              <Text textAlign="center" whiteSpace="normal">
+                {reservation.note}
+              </Text>
+
+              <Center>
+                <Stack direction="row" mt="2" spacing={4}>
+                  <DeleteIcon
+                    mr="2"
+                    color="rgba(255,0,0,0.5)"
+                    onClick={deleteReservation(reservation.id)}
+                    cursor={"pointer"}
+                  />
+                  <EditIcon />
+                </Stack>
+              </Center>
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 export default RoomCellItem;

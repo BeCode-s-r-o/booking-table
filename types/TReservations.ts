@@ -3,8 +3,9 @@ export type TReservation = {
   roomId: string;
   start: number;
   end: number;
+  note?: string;
+  price?: string;
   name: string;
-  halfDay: boolean;
 };
 
 export type TDay = { value: number; label: string };
