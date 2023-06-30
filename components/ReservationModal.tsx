@@ -126,7 +126,6 @@ const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
       }
     );
 
-    // If there's a conflicting reservation, alert the user and return early
     if (hasConflictingReservation) {
       alert(
         "There is already a full day reservation on these dates for this room"
@@ -150,8 +149,6 @@ const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
   const defaultReservationEnd = moment(defaultReservation.end).format(
     "YYYY-MM-DD"
   );
-
-  console.log(reservation);
 
   return (
     <>
