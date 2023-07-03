@@ -24,9 +24,16 @@ type Props = {
   rooms: TRoom[];
   reservations: TReservation[];
   refetch: () => void;
+  handleEditReservation: (reservation: TReservation) => void;
 };
 
-export const Table = ({ days, rooms, reservations, refetch }: Props) => {
+export const Table = ({
+  days,
+  rooms,
+  reservations,
+  refetch,
+  handleEditReservation,
+}: Props) => {
   const fs = getFirestore();
 
   const getReservationsForDay = (roomId: string, dayValue: number) => {
@@ -72,6 +79,7 @@ export const Table = ({ days, rooms, reservations, refetch }: Props) => {
         reservation={reservation}
         dayType={dayType}
         refetch={refetch}
+        handleEditReservation={handleEditReservation}
       />
     );
   };

@@ -21,22 +21,19 @@ import {
 } from "../constants";
 import { TFirebaseCollections, TReservation } from "../types";
 
-type CellItemProps = {
-  children?: React.ReactNode;
-  color: string;
-  clipPath?: string;
-  reservation: TReservation;
-  textAlign: string;
-  refetch: () => void;
-};
-
 type Props = {
   reservation: TReservation;
   dayType: string;
   refetch: () => void;
+  handleEditReservation: (reservation: TReservation) => void;
 };
 
-export const RoomCellItem: FC<Props> = ({ reservation, dayType, refetch }) => {
+export const RoomCellItem: FC<Props> = ({
+  reservation,
+  dayType,
+  refetch,
+  handleEditReservation,
+}) => {
   switch (dayType) {
     case "start":
       return (
@@ -46,6 +43,7 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType, refetch }) => {
             color="blue"
             reservation={reservation}
             refetch={refetch}
+            handleEditReservation={handleEditReservation}
           />
         </Box>
       );
@@ -57,6 +55,7 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType, refetch }) => {
             {...middleComponentProps}
             reservation={reservation}
             refetch={refetch}
+            handleEditReservation={handleEditReservation}
           />
         </Box>
       );
@@ -68,6 +67,7 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType, refetch }) => {
             {...bottomComponentProps}
             reservation={reservation}
             refetch={refetch}
+            handleEditReservation={handleEditReservation}
           />
         </Box>
       );
@@ -80,10 +80,21 @@ export const RoomCellItem: FC<Props> = ({ reservation, dayType, refetch }) => {
             {...middleComponentProps}
             reservation={reservation}
             refetch={refetch}
+            handleEditReservation={handleEditReservation}
           />
         </Box>
       );
   }
+};
+
+type CellItemProps = {
+  children?: React.ReactNode;
+  color: string;
+  clipPath?: string;
+  reservation: TReservation;
+  textAlign: string;
+  refetch: () => void;
+  handleEditReservation: (reservation: TReservation) => void;
 };
 
 const CellItem: FC<CellItemProps> = ({
@@ -92,6 +103,7 @@ const CellItem: FC<CellItemProps> = ({
   reservation,
   textAlign,
   refetch,
+  handleEditReservation,
 }) => {
   const deleteReservation = (id: string) => async () => {
     await deleteDoc(doc(getFirestore(), TFirebaseCollections.RESERVATIONS, id));
@@ -150,7 +162,10 @@ const CellItem: FC<CellItemProps> = ({
                     onClick={deleteReservation(reservation.id)}
                     cursor={"pointer"}
                   />
-                  <EditIcon />
+                  <EditIcon
+                    onClick={() => handleEditReservation(reservation)}
+                    cursor={"pointer"}
+                  />
                 </Stack>
               </Center>
             </PopoverBody>

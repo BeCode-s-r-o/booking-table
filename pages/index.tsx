@@ -5,11 +5,14 @@ import { useState } from "react";
 import { Box, useDisclosure } from "@chakra-ui/react";
 import { Buttons, ReservationModal, Table } from "../components";
 import { useFetchData } from "../hooks";
+import { TReservation } from "../types";
 
 moment.locale("sk");
 
 const Index = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isEdit, setIsEdit] = useState<boolean>(false);
+  const [editData, setEditData] = useState<TReservation | null>(null);
   const { rooms, reservations, setRooms, refetch } = useFetchData();
   const [weekOffset, setWeekOffset] = useState(0);
 
@@ -27,6 +30,12 @@ const Index = () => {
 
   const days = generateWeek(weekOffset);
 
+  const handleEditReservation = (data: TReservation) => {
+    setIsEdit(true);
+    setEditData(data);
+    onOpen();
+  };
+
   return (
     <Box p="4">
       <Buttons
@@ -41,8 +50,17 @@ const Index = () => {
         rooms={rooms}
         reservations={reservations}
         refetch={refetch}
+        handleEditReservation={handleEditReservation}
       />
-      <ReservationModal isOpen={isOpen} onClose={onClose} refetch={refetch} />
+      <ReservationModal
+        key={isEdit ? editData?.id : "new"}
+        isOpen={isOpen}
+        onClose={onClose}
+        isEdit={isEdit}
+        refetch={refetch}
+        setIsEdit={setIsEdit}
+        editData={editData}
+      />
     </Box>
   );
 };

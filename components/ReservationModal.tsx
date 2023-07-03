@@ -10,38 +10,52 @@ import {
   ModalOverlay,
   Select,
   Textarea,
+  useToast,
 } from "@chakra-ui/react";
-import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { doc, getFirestore, setDoc, updateDoc } from "firebase/firestore";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import { uuid } from "uuidv4";
 import { useFetchData } from "../hooks";
 import { TFirebaseCollections, TReservation } from "../types";
+import { hasConflictingReservation } from "../utils";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   refetch: () => void;
   isEdit?: boolean;
+  editData?: TReservation | null | undefined;
+  setIsEdit: (isEdit: boolean) => void;
 };
 
-const defaultReservation = {
+const defaultReservation: TReservation = {
   name: "",
   start: moment().valueOf(),
   end: moment().add(1, "day").valueOf(),
   roomId: "",
   price: "",
   note: "",
+  id: "",
 };
 
-const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
+const ReservationModal = ({
+  isOpen,
+  onClose,
+  refetch,
+  isEdit,
+  editData,
+  setIsEdit,
+}: Props) => {
+  const toast = useToast();
   const {
     rooms,
     reservations: reservationsFromBe,
     setReservations,
   } = useFetchData();
 
-  const [reservation, setReservation] = useState(defaultReservation);
+  const [reservation, setReservation] =
+    useState<TReservation>(defaultReservation);
 
   useEffect(() => {
     setReservation((prevState) => ({
@@ -49,6 +63,14 @@ const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
       roomId: rooms[0]?.id || "",
     }));
   }, [rooms]);
+
+  useEffect(() => {
+    if (isEdit && editData) {
+      setReservation(editData);
+    } else {
+      setReservation(defaultReservation);
+    }
+  }, [isEdit, editData]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -78,58 +100,33 @@ const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
     }));
   };
 
+  const handleClose = () => {
+    refetch();
+    onClose();
+    setIsEdit(false);
+  };
+
   const handleSubmit = async () => {
+    if (isEdit) {
+      await updateDoc(
+        doc(getFirestore(), TFirebaseCollections.RESERVATIONS, reservation.id),
+        reservation
+      );
+      handleClose();
+      return;
+    }
     const id = uuid();
     const newReservation: TReservation = {
-      id,
       ...reservation,
+      id,
     };
 
-    const hasConflictingReservation = reservationsFromBe.some(
-      (existingReservation: TReservation) => {
-        const isSameRoom = existingReservation.roomId === newReservation.roomId;
-
-        const newReservationStart = moment(newReservation.start);
-        const newReservationEnd = moment(newReservation.end);
-        const existingReservationStart = moment(existingReservation.start);
-        const existingReservationEnd = moment(existingReservation.end);
-
-        const startInExisting = newReservationStart.isBetween(
-          existingReservationStart,
-          existingReservationEnd,
-          undefined,
-          "[]"
-        );
-        const endInExisting = newReservationEnd.isBetween(
-          existingReservationStart,
-          existingReservationEnd,
-          undefined,
-          "[]"
-        );
-        const existingInNew =
-          existingReservationStart.isBetween(
-            newReservationStart,
-            newReservationEnd,
-            undefined,
-            "[]"
-          ) &&
-          existingReservationEnd.isBetween(
-            newReservationStart,
-            newReservationEnd,
-            undefined,
-            "[]"
-          );
-
-        return (
-          isSameRoom && (startInExisting || endInExisting || existingInNew)
-        );
-      }
-    );
-
-    if (hasConflictingReservation) {
-      alert(
-        "There is already a full day reservation on these dates for this room"
-      );
+    if (hasConflictingReservation(reservationsFromBe, newReservation)) {
+      toast({
+        status: "error",
+        title:
+          "Na tento deň už existuje rezervácia pre túto izbu. Prosím vyberte iný deň.",
+      });
       return;
     }
 
@@ -139,8 +136,7 @@ const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
       newReservation
     );
     setReservation(defaultReservation);
-    refetch();
-    onClose();
+    handleClose();
   };
 
   const defaultReservationStart = moment(defaultReservation.start).format(
@@ -155,15 +151,21 @@ const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Pridať rezerváciu</ModalHeader>
+          <ModalHeader>{isEdit ? "Upraviť" : "Pridať"} rezerváciu</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <small>Meno</small>
-            <Input onChange={handleChange} name="name" placeholder="Meno" />
+            <Input
+              onChange={handleChange}
+              value={reservation.name}
+              name="name"
+              placeholder="Meno"
+            />
             <small>Príchod</small>
             <Input
               onChange={handleChange}
               defaultValue={defaultReservationStart}
+              value={moment(reservation.start).format("YYYY-MM-DD")}
               name="start"
               type="date"
             />
@@ -171,6 +173,7 @@ const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
             <Input
               onChange={handleChange}
               defaultValue={defaultReservationEnd}
+              value={moment(reservation.end).format("YYYY-MM-DD")}
               name="end"
               type="date"
             />
@@ -183,13 +186,26 @@ const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
               ))}
             </Select>
             <small>Cena</small>
-            <Input onChange={handleChange} name="price" />
+            <Input
+              onChange={handleChange}
+              value={reservation.price}
+              name="price"
+            />
             <small>Poznámka</small>
-            <Textarea onChange={handleChange} name="note" />
+            <Textarea
+              onChange={handleChange}
+              value={reservation.note}
+              name="note"
+            />
           </ModalBody>
 
           <ModalFooter>
-            <Button variant="ghost" colorScheme="blue" mr={3} onClick={onClose}>
+            <Button
+              variant="ghost"
+              colorScheme="blue"
+              mr={3}
+              onClick={handleClose}
+            >
               Zrušiť
             </Button>
             <Button
@@ -197,7 +213,7 @@ const ReservationModal = ({ isOpen, onClose, refetch, isEdit }: Props) => {
               colorScheme="blue"
               onClick={handleSubmit}
             >
-              Pridať
+              {isEdit ? "Uložiť" : "Pridať"}
             </Button>
           </ModalFooter>
         </ModalContent>
