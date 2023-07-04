@@ -1,38 +1,38 @@
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     types:
-#       - closed
-# name: 🚀 Nahrať na FTP
-# jobs:
-#   web-deploy:
-#     name: 🚀 Nahrať na FTP server
-#     runs-on: ubuntu-latest
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - closed
+name: 🚀 Nahrať na FTP
+jobs:
+  web-deploy:
+    name: 🚀 Nahrať na FTP server
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - name: 🚚 NPM INSTALL
-#         uses: actions/checkout@v2
+    steps:
+      - name: 🚚 NPM INSTALL
+        uses: actions/checkout@v2
 
-#       - name: Použiť Node.js 14
-#         uses: actions/setup-node@v2
-#         with:
-#           node-version: "14"
+      - name: Použiť Node.js 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
 
-#       - name: 🔨 NPM RUN BUILD
-#         run: |
-#           npm install
-#           npm run build
+      - name: 🔨 NPM RUN BUILD
+        run: |
+          npm install
+          npm run build
 
-#       - name: 📂 NAHRAŤ NA FTP SERVER
-#         uses: SamKirkland/FTP-Deploy-Action@4.3.3
-#         with:
-#           server: granarium.sk
-#           username: granariums1
-#           password: VladkoTomko123
-#           local-dir: ./out/
-#           server-dir: granarium.sk/web/
-#           port: 21
-#           protocol: ftp
-#           timeout: 1000000
+      - name: 📂 NAHRAŤ NA FTP SERVER
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: becode.sk
+          username: granarium.becode.sk
+          password: Rh4/pqgRPq
+          local-dir: ./out/
+          server-dir: becode.sk/sub/granarium
+          port: 21
+          protocol: ftp
+          timeout: 1000000

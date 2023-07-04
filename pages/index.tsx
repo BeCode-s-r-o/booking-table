@@ -3,6 +3,7 @@ import "moment/locale/sk";
 import { useState } from "react";
 
 import { Box, useDisclosure } from "@chakra-ui/react";
+import Head from "next/head";
 import { Buttons, ReservationModal, Table } from "../components";
 import { useFetchData } from "../hooks";
 import { TReservation } from "../types";
@@ -29,6 +30,9 @@ const Index = () => {
 
   return (
     <Box py="4">
+      <Head>
+        <title>Granárium Booking Admin</title>
+      </Head>
       <Buttons
         onOpen={onOpen}
         setWeekOffset={setWeekOffset}
