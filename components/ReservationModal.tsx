@@ -209,6 +209,14 @@ const ReservationModal = ({
               Zrušiť
             </Button>
             <Button
+              variant="ghost"
+              colorScheme="blue"
+              mr={3}
+              onClick={handleClose}
+            >
+              Kopírovať do inej izby
+            </Button>
+            <Button
               isDisabled={!reservation.name}
               colorScheme="blue"
               onClick={handleSubmit}
