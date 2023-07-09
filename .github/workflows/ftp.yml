@@ -32,7 +32,7 @@ jobs:
           username: granarium.becode.sk
           password: Rh4/pqgRPq
           local-dir: ./out/
-          server-dir: becode.sk/sub/granarium
+          server-dir: becode.sk/sub/granarium/
           port: 21
           protocol: ftp
           timeout: 1000000
