@@ -1,4 +1,2 @@
 - Pridat vyber datumu
 - Tlač
-- Kazdy 2 riadok farebne odliseny
-- kopirovanie rezervacie do inej izby

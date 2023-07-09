@@ -10,6 +10,7 @@ import {
   ModalOverlay,
   Select,
   Textarea,
+  useDisclosure,
   useToast,
 } from "@chakra-ui/react";
 import { doc, getFirestore, setDoc, updateDoc } from "firebase/firestore";
@@ -19,6 +20,7 @@ import { uuid } from "uuidv4";
 import { useFetchData } from "../hooks";
 import { TFirebaseCollections, TReservation } from "../types";
 import { hasConflictingReservation } from "../utils";
+import CopyReservationModal from "./CopyReservationModal";
 
 type Props = {
   isOpen: boolean;
@@ -54,15 +56,14 @@ const ReservationModal = ({
     setReservations,
   } = useFetchData();
 
+  const {
+    isOpen: isOpenCopy,
+    onClose: onCloseCopy,
+    onOpen: onOpenCopy,
+  } = useDisclosure();
+
   const [reservation, setReservation] =
     useState<TReservation>(defaultReservation);
-
-  useEffect(() => {
-    setReservation((prevState) => ({
-      ...prevState,
-      roomId: rooms[0]?.id || "",
-    }));
-  }, [rooms]);
 
   useEffect(() => {
     if (isEdit && editData) {
@@ -101,9 +102,10 @@ const ReservationModal = ({
   };
 
   const handleClose = () => {
+    setIsEdit(false);
+    setReservation(defaultReservation);
     refetch();
     onClose();
-    setIsEdit(false);
   };
 
   const handleSubmit = async () => {
@@ -135,7 +137,7 @@ const ReservationModal = ({
       doc(getFirestore(), TFirebaseCollections.RESERVATIONS, id),
       newReservation
     );
-    setReservation(defaultReservation);
+
     handleClose();
   };
 
@@ -148,7 +150,7 @@ const ReservationModal = ({
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={handleClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>{isEdit ? "Upraviť" : "Pridať"} rezerváciu</ModalHeader>
@@ -179,6 +181,9 @@ const ReservationModal = ({
             />
             <small>Izba</small>
             <Select onChange={handleSelectChange} value={reservation.roomId}>
+              <option key={""} value={""}>
+                Vyberte izbzu
+              </option>
               {rooms.map((room) => (
                 <option key={room.id} value={room.id}>
                   {room.name}
@@ -208,14 +213,16 @@ const ReservationModal = ({
             >
               Zrušiť
             </Button>
-            <Button
-              variant="ghost"
-              colorScheme="blue"
-              mr={3}
-              onClick={handleClose}
-            >
-              Kopírovať do inej izby
-            </Button>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                colorScheme="blue"
+                mr={3}
+                onClick={onOpenCopy}
+              >
+                Kopírovať do inej izby
+              </Button>
+            )}
             <Button
               isDisabled={!reservation.name}
               colorScheme="blue"
@@ -226,6 +233,12 @@ const ReservationModal = ({
           </ModalFooter>
         </ModalContent>
       </Modal>
+      <CopyReservationModal
+        isOpen={isOpenCopy}
+        onClose={onCloseCopy}
+        existingReservation={reservation}
+        refetch={refetch}
+      />
     </>
   );
 };
