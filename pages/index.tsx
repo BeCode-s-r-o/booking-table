@@ -1,63 +1,118 @@
-import moment from "moment";
-import "moment/locale/sk";
-import { useState } from "react";
+import {
+  Box,
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  Stack,
+  useToast,
+} from "@chakra-ui/react";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
-import { Box, useDisclosure } from "@chakra-ui/react";
-import Head from "next/head";
-import { Buttons, ReservationModal, Table } from "../components";
-import { useFetchData } from "../hooks";
-import { TReservation } from "../types";
-import { generateWeek } from "../utils/dateUtils";
+export default function SimpleCard() {
+  const [data, setData] = useState({ email: "", password: "" });
+  const toast = useToast();
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
 
-moment.locale("sk");
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+        router.push("/booking");
+      } else {
+        setUser(null);
+      }
+    });
 
-const Index = () => {
-  //states
-  const [weekOffset, setWeekOffset] = useState(0);
-  const [isEdit, setIsEdit] = useState<boolean>(false);
-  const [editData, setEditData] = useState<TReservation | null>(null);
-  //hooks
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const { rooms, reservations, setRooms, refetch } = useFetchData();
-  //constants
-  const days = generateWeek(weekOffset);
+    return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleEditReservation = (data: TReservation) => {
-    setIsEdit(true);
-    setEditData(data);
-    onOpen();
+  const handleInputChange = (event: any) => {
+    setData({ ...data, [event.target.name]: event.target.value });
   };
 
-  return (
-    <Box py="4">
-      <Head>
-        <title>Granárium Booking Admin</title>
-      </Head>
-      <Buttons
-        onOpen={onOpen}
-        setWeekOffset={setWeekOffset}
-        weekOffset={weekOffset}
-        rooms={rooms}
-        setRooms={setRooms}
-      />
-      <Table
-        days={days}
-        rooms={rooms}
-        reservations={reservations}
-        refetch={refetch}
-        handleEditReservation={handleEditReservation}
-      />
-      <ReservationModal
-        key={isEdit ? editData?.id : "new"}
-        isOpen={isOpen}
-        onClose={onClose}
-        isEdit={isEdit}
-        refetch={refetch}
-        setIsEdit={setIsEdit}
-        editData={editData}
-      />
-    </Box>
-  );
-};
+  const handleSubmit = (event: any) => {
+    event.preventDefault();
+    signInWithEmailAndPassword(getAuth(), data.email, data.password)
+      .then((userCredential) => {
+        setUser(userCredential.user);
+        router.push("/booking");
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        toast({
+          title: "Chyba pri prihlásení",
+          description: `${errorCode} - ${errorMessage}`,
+          status: "error",
+          duration: 9000,
+          isClosable: true,
+        });
+      });
+  };
 
-export default Index;
+  const handleKeyDown = (event: any) => {
+    if (event.key === "Enter") {
+      handleSubmit(event);
+    }
+  };
+
+  if (user) {
+    return null; // render nothing until redirection happens
+  }
+
+  return (
+    <Flex minH={"100vh"} align={"center"} justify={"center"} bg="gray.50">
+      <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
+        <Stack align={"center"}>
+          <Heading fontSize={"4xl"}>Prihlásenie - Granárium</Heading>
+        </Stack>
+        <Box rounded={"lg"} bg="white" boxShadow={"lg"} p={8}>
+          <Stack spacing={4}>
+            <FormControl id="email">
+              <FormLabel>Email</FormLabel>
+              <Input
+                onChange={handleInputChange}
+                type="email"
+                name="email"
+                onKeyDown={handleKeyDown}
+              />
+            </FormControl>
+            <FormControl id="password">
+              <FormLabel>Heslo</FormLabel>
+              <Input
+                onChange={handleInputChange}
+                type="password"
+                name="password"
+                onKeyDown={handleKeyDown}
+              />
+            </FormControl>
+            <Stack spacing={10}>
+              <Button
+                onClick={handleSubmit}
+                bg={"blue.400"}
+                color={"white"}
+                _hover={{
+                  bg: "blue.500",
+                }}
+              >
+                Prihlásiť sa
+              </Button>
+            </Stack>
+          </Stack>
+        </Box>
+      </Stack>
+    </Flex>
+  );
+}
