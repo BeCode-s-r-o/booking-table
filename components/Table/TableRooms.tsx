@@ -5,6 +5,7 @@ import {
   EditablePreview,
   Tbody,
   Td,
+  Text,
   Tr,
 } from "@chakra-ui/react";
 import { deleteDoc, doc, getFirestore, updateDoc } from "firebase/firestore";
@@ -30,7 +31,8 @@ export const TableRooms = ({
 
   const handleChangeRoomName = (roomId: string) => (value: string) => {
     const roomRef = doc(fs, TFirebaseCollections.ROOMS, roomId);
-    updateDoc(roomRef, { name: value });
+    updateDoc(roomRef, { name: value, hasBeenEdited: true });
+    refetch();
   };
 
   const deleteRoom = (roomId: string) => () => {
@@ -59,20 +61,26 @@ export const TableRooms = ({
           key={room.id}
         >
           <Td display="flex" alignItems="center">
-            <DeleteIcon
-              boxSize={3}
-              mr="2"
-              color="rgba(255,0,0,0.5)"
-              onClick={deleteRoom(room.id)}
-              cursor={"pointer"}
-            />
-            <Editable
-              defaultValue={room.name}
-              onSubmit={handleChangeRoomName(room.id)}
-            >
-              <EditablePreview />
-              <EditableInput />
-            </Editable>
+            {!room.hasBeenEdited ? (
+              <DeleteIcon
+                boxSize={3}
+                mr="2"
+                color="rgba(255,0,0,0.5)"
+                onClick={deleteRoom(room.id)}
+                cursor={"pointer"}
+              />
+            ) : null}
+            {room.hasBeenEdited ? (
+              <Text fontWeight="bold">{room.name}</Text>
+            ) : (
+              <Editable
+                defaultValue={room.name}
+                onSubmit={handleChangeRoomName(room.id)}
+              >
+                <EditablePreview />
+                <EditableInput />
+              </Editable>
+            )}
           </Td>
           <TableReservations
             room={room}
