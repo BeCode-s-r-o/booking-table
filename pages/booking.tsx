@@ -5,12 +5,19 @@ import "moment/locale/sk";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { styled } from "styled-components";
 import { Buttons, ReservationModal, Table } from "../components";
 import { useFetchData } from "../hooks";
 import { TReservation } from "../types";
 import { generateWeek } from "../utils/dateUtils";
 
 moment.locale("sk");
+
+const StyledDiv = styled.div`
+  @media print {
+    display: none !important;
+  }
+`;
 
 const Index = () => {
   //states
@@ -60,13 +67,15 @@ const Index = () => {
       <Head>
         <title>Granárium Booking Admin</title>
       </Head>
-      <Buttons
-        onOpen={onOpen}
-        setWeekOffset={setWeekOffset}
-        weekOffset={weekOffset}
-        rooms={rooms}
-        setRooms={setRooms}
-      />
+      <StyledDiv>
+        <Buttons
+          onOpen={onOpen}
+          setWeekOffset={setWeekOffset}
+          weekOffset={weekOffset}
+          rooms={rooms}
+          setRooms={setRooms}
+        />
+      </StyledDiv>
       <Table
         days={days}
         rooms={rooms}
