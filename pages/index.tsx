@@ -46,6 +46,7 @@ export default function SimpleCard() {
 
   const handleSubmit = (event: any) => {
     event.preventDefault();
+    setLoading(true);
     signInWithEmailAndPassword(getAuth(), data.email, data.password)
       .then((userCredential) => {
         setUser(userCredential.user);
@@ -61,6 +62,9 @@ export default function SimpleCard() {
           duration: 9000,
           isClosable: true,
         });
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
