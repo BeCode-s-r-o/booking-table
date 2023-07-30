@@ -22,10 +22,12 @@ export default function SimpleCard() {
   const toast = useToast();
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setLoading(false);
       if (user) {
         setUser(user);
         router.push("/booking");
@@ -100,6 +102,7 @@ export default function SimpleCard() {
             </FormControl>
             <Stack spacing={10}>
               <Button
+                isDisabled={loading}
                 onClick={handleSubmit}
                 bg={"blue.400"}
                 color={"white"}
@@ -107,7 +110,7 @@ export default function SimpleCard() {
                   bg: "blue.500",
                 }}
               >
-                Prihlásiť sa
+                {loading ? "Načítavam..." : "Prihlásiť"}
               </Button>
             </Stack>
           </Stack>
